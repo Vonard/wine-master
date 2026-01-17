@@ -3,11 +3,9 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import pandas
 import collections
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+import os
+from dotenv import load_dotenv
 
-env = Environment(
-    loader=FileSystemLoader('.'),
-    autoescape=select_autoescape(['html', 'xml'])
-)
 
 def years_word_form(age):
     last_number = age % 10
@@ -25,23 +23,32 @@ def years_word_form(age):
         else:
             write_year = "год"
     return write_year
-wines = pandas.read_excel("wine3.xlsx", na_values=['N/A', 'NA'], keep_default_na=False).to_dict("records")
-grouped_wines = collections.defaultdict(list)
-for wine in wines:
-    grouped_wines[wine["Категория"]].append(wine)
-print(grouped_wines)
-template = env.get_template('template.html')
-now_year = datetime.now().year
-foundation_year = 1920
-age = now_year - foundation_year
-rendered_page = template.render(
-    age=age,
-    age_word=years_word_form(age),
-    wines=grouped_wines
-)
 
-with open('index.html', 'w', encoding="utf8") as file:
-    file.write(rendered_page)
 
-server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
-server.serve_forever()
+def main():
+    load_dotenv()
+    env = Environment(
+        loader=FileSystemLoader("."),
+        autoescape=select_autoescape(["html", "xml"])
+    )
+    wines = pandas.read_excel(os.getenv("WINE_TABLE"), na_values=["N/A", "NA"], keep_default_na=False).to_dict("records")
+    grouped_wines = collections.defaultdict(list)
+    for wine in wines:
+        grouped_wines[wine["Категория"]].append(wine)
+    template = env.get_template("template.html")
+    now_year = datetime.now().year
+    foundation_year = 1920
+    age = now_year - foundation_year
+    rendered_page = template.render(
+        age=age,
+        age_word=years_word_form(age),
+        wines=grouped_wines
+    )
+    with open("index.html", "w", encoding="utf8") as file:
+        file.write(rendered_page)
+    server = HTTPServer(("0.0.0.0", 8000), SimpleHTTPRequestHandler)
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()
