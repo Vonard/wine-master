@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 
 
-def years_word_form(age):
+def get_years_word_form(age):
     last_number = age % 10
     pre_last_number = age // 10 % 10
     if last_number >= 2 and last_number <= 4:
@@ -31,21 +31,27 @@ def main():
         loader=FileSystemLoader("."),
         autoescape=select_autoescape(["html", "xml"])
     )
+
     wines = pandas.read_excel(os.getenv("WINE_TABLE"), na_values=["N/A", "NA"], keep_default_na=False).to_dict("records")
     grouped_wines = collections.defaultdict(list)
+
     for wine in wines:
         grouped_wines[wine["Категория"]].append(wine)
+
     template = env.get_template("template.html")
     now_year = datetime.now().year
     foundation_year = 1920
     age = now_year - foundation_year
+
     rendered_page = template.render(
         age=age,
-        age_word=years_word_form(age),
+        age_word=get_years_word_form(age),
         wines=grouped_wines
     )
+
     with open("index.html", "w", encoding="utf8") as file:
         file.write(rendered_page)
+
     server = HTTPServer(("0.0.0.0", 8000), SimpleHTTPRequestHandler)
     server.serve_forever()
 
