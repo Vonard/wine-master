@@ -32,7 +32,7 @@ def main():
         autoescape=select_autoescape(["html", "xml"])
     )
 
-    wines = pandas.read_excel(os.getenv("WINE_TABLE"), na_values=["N/A", "NA"], keep_default_na=False).to_dict("records")
+    wines = pandas.read_excel(os.environ["WINE_TABLE"], na_values=["N/A", "NA"], keep_default_na=False).to_dict("records")
     grouped_wines = collections.defaultdict(list)
 
     for wine in wines:
